@@ -1,5 +1,5 @@
 // 1. 画像用バケットの公開URLに書き換えてください
-const IMAGE_URL = 'https://va-content-s3-bucket.s3.ap-northeast-1.amazonaws.com/test-image.jpg';
+const IMAGE_URL = 'https://dva-content-s3-bucket.s3.ap-northeast-1.amazonaws.com/test-image.jpg';
 
 // 2. Fetch APIを使って画像を読み込む（これがCORSの検証になります）
 fetch(IMAGE_URL)
