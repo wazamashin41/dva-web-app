@@ -8,7 +8,8 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -17,8 +18,12 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-northeast-1
 
+      # 1. Frontendフォルダの中身をS3（配信用バケット）へ同期
       - name: S3 Sync
-        run: aws s3 sync ./frontend s3://dva-frontend-s3-bucket --delete
+        run: |
+          aws s3 sync ./frontend s3://dva-frontend-s3-bucket --delete
 
-      - name: CloudFront Invalidation  # キャッシュをクリアして即時反映させる
-        run: aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DIST_ID }} --paths "/*"
+      # 2. CloudFrontのキャッシュを無効化（これをしないと古いindex.htmlが見え続ける）
+      - name: CloudFront Invalidation
+        run: |
+          aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DIST_ID }} --paths "/*"

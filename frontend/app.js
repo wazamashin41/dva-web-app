@@ -1,26 +1,28 @@
-// 注意: DVA試験では SDK v3 (モジュール形式) が主流です
-import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
-import { fromCognitoIdentityPool } from "@aws-sdk/credential-providers";
+// 1. 画像用バケットの公開URLに書き換えてください
+const IMAGE_URL = 'https://va-content-s3-bucket.s3.ap-northeast-1.amazonaws.com/test-image.jpg';
 
-async function loadImage() {
-    // 1. Identity Pool から一時的な認証情報を取得
-    const credentials = fromCognitoIdentityPool({
-        identityPoolId: "ap-northeast-1_HouGGirCX", // あなたのID
-        clientConfig: { region: "ap-northeast-1" }
+// 2. Fetch APIを使って画像を読み込む（これがCORSの検証になります）
+fetch(IMAGE_URL)
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTPエラー! ステータス: ${response.status}`);
+        }
+        return response.blob(); // 画像データをバイナリとして取得
+    })
+    .then(blob => {
+        // 取得したバイナリデータをブラウザで表示できるURLに変換
+        const objectURL = URL.createObjectURL(blob);
+        const img = document.createElement('img');
+        img.src = objectURL;
+        img.style.maxWidth = '400px';
+        img.style.border = '2px solid #333';
+        
+        document.getElementById('image-container').appendChild(img);
+    })
+    .catch(err => {
+        // エラーが出た場合、CORS設定が原因であることが多いです
+        console.error('読み込み失敗:', err);
+        document.getElementById('image-container').innerHTML = 
+            `<p style="color:red;">エラー発生: ${err.message}<br>
+            S3のCORS設定を確認してください。</p>`;
     });
-
-    const s3Client = new S3Client({ region: "ap-northeast-1", credentials });
-
-    // 2. S3 から画像を取得
-    const command = new GetObjectCommand({
-        Bucket: "dva-content-s3-bucket",
-        Key: "test.jpg"
-    });
-
-    try {
-        const response = await s3Client.send(command);
-        // 画像を表示する処理...
-    } catch (err) {
-        console.error("CORSや権限エラーならここで捕まる", err);
-    }
-}
