@@ -21,6 +21,6 @@ async function loadImage() {
         const response = await s3Client.send(command);
         // 画像を表示する処理...
     } catch (err) {
-        console.error("CORSや権限エラーならここで捕まる！", err);
+        console.error("CORSや権限エラーならここで捕まる", err);
     }
 }
